@@ -5,6 +5,11 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class IdentitySPData {
+
+    @SerializedName("member_type")
+    @Expose
+    String member_type;
+
     @SerializedName("curve")
     @Expose
     String curve;
@@ -116,4 +121,7 @@ public class IdentitySPData {
         return level_customer;
     }
 
+    public String getMember_type() {
+        return member_type;
+    }
 }

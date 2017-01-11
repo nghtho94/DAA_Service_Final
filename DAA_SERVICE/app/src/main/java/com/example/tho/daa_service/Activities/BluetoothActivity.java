@@ -218,7 +218,7 @@ public class BluetoothActivity extends AppCompatActivity {
 //                    sendMessage(message);
 //                }
 
-                sendMessage("Dit me may");
+                sendMessage("xxx");
             }
         });
 
