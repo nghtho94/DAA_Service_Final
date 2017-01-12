@@ -47,11 +47,11 @@ public class Authenticator {
 	public enum JoinState {NOT_JOINED, IN_PROGRESS, JOINED};
 	private JoinState joinState;
 
+	private ECPoint a, b, c, d; // credential
+
 	public void setJoinState(JoinState joinState) {
 		this.joinState = joinState;
 	}
-
-	private ECPoint a, b, c, d; // credential
 
 	public Authenticator(BNCurve curve, IssuerPublicKey issuerPk) throws NoSuchAlgorithmException {
 		this(curve, issuerPk, null);
@@ -185,15 +185,15 @@ public class Authenticator {
 		success &= this.curve.pair(message.a, this.issuerPk.Y).equals(this.curve.pair(message.b, this.curve.getG2()));
 		success &= this.curve.pair(message.c, this.curve.getG2()).equals(this.curve.pair(message.a.clone().addPoint(message.d.multiplyPoint(l)), this.issuerPk.X));
 
-
-		if(success) {
-			// Store the credential
-			this.a = message.a;
-			this.b = message.b;
-			this.c = message.c;
-			this.d = message.d;
-			this.joinState = JoinState.JOINED;
-		}
+		//an attacker can remove this , let check
+		//if(success) {
+		// Store the credential
+		this.a = message.a;
+		this.b = message.b;
+		this.c = message.c;
+		this.d = message.d;
+		this.joinState = JoinState.JOINED;
+		//}
 
 		return success;
 	}
@@ -205,7 +205,7 @@ public class Authenticator {
 
 	/**
 	 * Creates a new ECDAA signature
-	 * @param  basename The basename (i.e. https-URL of TrustFacets object)
+	 * @param appId The AppID (i.e. https-URL of TrustFacets object)
 	 * @return a new ECDAA signature
 	 * @throws NoSuchAlgorithmException
 	 */

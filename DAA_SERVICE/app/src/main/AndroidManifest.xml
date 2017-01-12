@@ -31,6 +31,7 @@
         <activity android:name=".Activities.QRCodeActivity" > </activity>
         <activity android:name=".Activities.SplashScreeen"> </activity>
         <activity android:name=".Activities.LoginActivity"></activity>
+        <activity android:name=".Activities.DeviceListActivity" />
     </application>
 
 </manifest>

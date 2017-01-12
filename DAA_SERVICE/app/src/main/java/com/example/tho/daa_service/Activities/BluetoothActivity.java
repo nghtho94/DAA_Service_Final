@@ -61,7 +61,7 @@ public class BluetoothActivity extends AppCompatActivity {
     // Layout Views
     private ListView mConversationView;
     private EditText mOutEditText;
-    private Button mSendButton;
+    private Button mSendButton, getData;
 
     /**
      * Name of the connected device
@@ -98,6 +98,7 @@ public class BluetoothActivity extends AppCompatActivity {
     Button test;
     IdentitySPData identity_sp_data;
 
+    String TPM_ECC_BN_P256 = "TPM_ECC_BN_P256";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +116,7 @@ public class BluetoothActivity extends AppCompatActivity {
             }
         });
 
-        curve = singleton.getCurve();
+        curve = new BNCurve(BNCurve.BNCurveInstantiation.valueOf(TPM_ECC_BN_P256));
         identitySPData = singleton.getAnonymousIdentity();
 
         // Get local Bluetooth adapter
@@ -140,13 +141,14 @@ public class BluetoothActivity extends AppCompatActivity {
 
         IdentitySPDataAPI service = retrofit.create(IdentitySPDataAPI.class);
 
-        Call<IdentitySPData> call = service.downloadFile(2);
+        Call<IdentitySPData> call = service.downloadFile(4);
 
         call.enqueue(new Callback<IdentitySPData>() {
             @Override
             public void onResponse(Call<IdentitySPData> call, Response<IdentitySPData> response) {
                 identity_sp_data = response.body();
                 Log.d("ServiceData", identity_sp_data.getPermission());
+                identitySPData = identity_sp_data;
             }
 
             @Override
@@ -208,19 +210,19 @@ public class BluetoothActivity extends AppCompatActivity {
         //mOutEditText.setOnEditorActionListener(mWriteListener);
 
         // Initialize the send button with a listener that for click events
-        mSendButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Send a message using content of the edit text widget
-//                View view = getView();
-//                if (null != view) {
-//                    TextView textView = (TextView) view.findViewById(R.id.edit_text_out);
-//                    String message = textView.getText().toString();
-//                    sendMessage(message);
-//                }
-
-                sendMessage("xxx");
-            }
-        });
+//        mSendButton.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                // Send a message using content of the edit text widget
+////                View view = getView();
+////                if (null != view) {
+////                    TextView textView = (TextView) view.findViewById(R.id.edit_text_out);
+////                    String message = textView.getText().toString();
+////                    sendMessage(message);
+////                }
+//
+//                sendMessage("xxx");
+//           }
+  //      });
 
         // Initialize the BluetoothService to perform bluetooth connections
         mChatService = new BluetoothService(this, mHandler);
@@ -337,13 +339,15 @@ public class BluetoothActivity extends AppCompatActivity {
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
                     //mConversationArrayAdapter.add("Me:  " + writeMessage);
-                    Toast.makeText(BluetoothActivity.this, "Send nè", Toast.LENGTH_LONG).show();
+                    Toast.makeText(BluetoothActivity.this, writeMessage, Toast.LENGTH_LONG).show();
                     break;
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
+                    Log.d("message",readMessage);
                     ///HANDLE Message
+                    Toast.makeText(BluetoothActivity.this, readMessage, Toast.LENGTH_LONG).show();
                     try {
                         messageHandle(readMessage);
                     } catch (JSONException e) {
@@ -357,6 +361,18 @@ public class BluetoothActivity extends AppCompatActivity {
 
                         Toast.makeText(BluetoothActivity.this, "Connected to "
                                 + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+
+                        //******************* TEST
+
+                        String type = msg.getData().getString("secure");
+                        if (type == "Secure") {
+                            mChatService.tho();
+//                            String address = mConnectedDeviceName;
+//                            // Get the BluetoothDevice object
+//                            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+//                            // Attempt to connect to the device
+//                            mChatService.connect(device, false);
+                        }
                     }
                     break;
                 case Constants.MESSAGE_TOAST:
@@ -478,10 +494,11 @@ public class BluetoothActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                String concac;
+
                 //send message
                 sendMessage(jsonInput.toString());
-                Toast.makeText(BluetoothActivity.this, "sessionID" , Toast.LENGTH_SHORT);
+
+                //Toast.makeText(BluetoothActivity.this, "sessionID" , Toast.LENGTH_SHORT);
                 break;
 
             case "verification":
@@ -497,7 +514,7 @@ public class BluetoothActivity extends AppCompatActivity {
                 String SPsessionID = singleton.getSessionID();
                 boolean temp = false;
                 try {
-                    temp = verifyEcDaaSigWrt(ipk, UserSig, SPsessionID, "permission",info.getBytes(), SPsessionID.getBytes());
+                    temp = verifyEcDaaSigWrt(ipk, UserSig, SPsessionID, "verification",info.getBytes(), SPsessionID.getBytes());
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
                 }
@@ -542,6 +559,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
 
 
+    //CREATE SIG
     private Authenticator.EcDaaSignature createSig(String info, String cre, String gsk, String sid, String basename, String ipkString) {
         try {
             Issuer.IssuerPublicKey ipk = new Issuer.IssuerPublicKey(curve, ipkString);
@@ -564,8 +582,10 @@ public class BluetoothActivity extends AppCompatActivity {
             return null;
 
         }
+
     }
 
+    //VERRIFY
     private boolean verifyEcDaaSigWrt(Issuer.IssuerPublicKey pk, String sig, String message, String basename,
                                       byte[] info, byte[] session) throws NoSuchAlgorithmException {
 

@@ -113,6 +113,33 @@ public class BluetoothService {
         }
     }
 
+    public synchronized void tho(){
+
+        // Cancel any thread attempting to make a connection
+        if (mConnectThread != null) {
+            mConnectThread.cancel();
+            mConnectThread = null;
+        }
+
+        // Cancel any thread currently running a connection
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+
+        setState(STATE_LISTEN);
+
+        // Start the thread to listen on a BluetoothServerSocket
+        if (mSecureAcceptThread == null) {
+            mSecureAcceptThread = new AcceptThread(true);
+            mSecureAcceptThread.start();
+        }
+        if (mInsecureAcceptThread == null) {
+            mInsecureAcceptThread = new AcceptThread(false);
+            mInsecureAcceptThread.start();
+        }
+    }
+
     /**
      * Start the ConnectThread to initiate a connection to a remote device.
      *
@@ -182,7 +209,11 @@ public class BluetoothService {
         // Send the name of the connected device back to the UI Activity
         Message msg = mHandler.obtainMessage(Constants.MESSAGE_DEVICE_NAME);
         Bundle bundle = new Bundle();
-        bundle.putString(Constants.DEVICE_NAME, device.getName());
+
+        //Sủa get name
+        bundle.putString(Constants.DEVICE_NAME, device.getAddress());
+        //ad them
+        bundle.putString("secure", socketType);
         msg.setData(bundle);
         mHandler.sendMessage(msg);
 
