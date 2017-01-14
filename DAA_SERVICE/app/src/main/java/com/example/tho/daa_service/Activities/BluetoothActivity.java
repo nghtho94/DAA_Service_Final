@@ -117,7 +117,7 @@ public class BluetoothActivity extends AppCompatActivity {
         });
 
         curve = new BNCurve(BNCurve.BNCurveInstantiation.valueOf(TPM_ECC_BN_P256));
-        identitySPData = singleton.getAnonymousIdentity();
+        identitySPData = singleton.getIdentitySPData();
 
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -348,11 +348,11 @@ public class BluetoothActivity extends AppCompatActivity {
                     Log.d("message",readMessage);
                     ///HANDLE Message
                     Toast.makeText(BluetoothActivity.this, readMessage, Toast.LENGTH_LONG).show();
-                    try {
-                        messageHandle(readMessage);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        messageHandle(readMessage);
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name

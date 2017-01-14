@@ -8,7 +8,7 @@ public class Singleton {
 
     private static final String TPM_ECC_BN_P256 = "TPM_ECC_BN_P256";
     private static Singleton singleton = new Singleton();
-    private static IdentitySPData AnonymousIdentity;
+    private static IdentitySPData identitySPData;
     private static BNCurve curve;
     private static String sessionID;
 
@@ -26,8 +26,12 @@ public class Singleton {
         curve = new BNCurve(BNCurve.BNCurveInstantiation.valueOf(TPM_ECC_BN_P256));
     }
 
-    public static IdentitySPData getAnonymousIdentity() {
-        return AnonymousIdentity;
+    public static IdentitySPData getIdentitySPData() {
+        return identitySPData;
+    }
+
+    public static void setCurve(BNCurve curve) {
+        Singleton.curve = curve;
     }
 
     public static BNCurve getCurve() {
@@ -41,6 +45,12 @@ public class Singleton {
     public static void setSessionID(String sessionID) {
         Singleton.sessionID = sessionID;
     }
+
+    public static void setIdentitySPData(IdentitySPData identitySPData) {
+        Singleton.identitySPData = identitySPData;
+    }
+
+
 
     /* Other methods protected by singleton-ness */
     protected static void demoMethod( ) {

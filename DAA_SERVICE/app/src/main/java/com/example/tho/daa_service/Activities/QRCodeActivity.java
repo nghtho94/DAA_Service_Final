@@ -7,6 +7,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 
+import com.example.tho.daa_service.Controller.Singleton;
+import com.example.tho.daa_service.Models.ResponseData.IdentitySPData;
 import com.example.tho.daa_service.Models.Utils.Config;
 import com.example.tho.daa_service.R;
 import com.google.zxing.BarcodeFormat;
@@ -19,27 +21,38 @@ import org.json.JSONObject;
 
 public class QRCodeActivity extends AppCompatActivity {
 
+    public final String TAG = "QRCodeActivity";
+
     ImageView qrCodeImageview;
     String QRcodeContent;
     public final static int WIDTH=500;
     // Mode QR
     public static Integer QRCode_INTERNET = 2909;
     public static Integer QRCode_BLUETOOTH = 2402;
+    Singleton singleton;
+    IdentitySPData identitySP_Data;
 
-    private String appId = "2";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qrcode);
+        singleton = Singleton.getInstance();
+        identitySP_Data = singleton.getIdentitySPData();
 
-        String s = getIntent().getStringExtra("QRCodeMODE");
 
         //
         getID();
         //
-        createQRCode(s);
+        createQRCode("online");
 
+    }
+
+    public String getName() throws JSONException {
+
+        String jsonBank = identitySP_Data.getLevel_customer();
+        JSONObject json = new JSONObject(jsonBank);
+        return json.getString("user_name");
     }
 
     @Override
@@ -53,7 +66,8 @@ public class QRCodeActivity extends AppCompatActivity {
         final JSONObject jsonInput = new JSONObject();
         try {
             jsonInput.put("mode",s);
-            jsonInput.put("appID", Config.APP_ID);
+            jsonInput.put("appID", Config.APP_ID.toString());
+            jsonInput.put("name", getName());
         } catch (JSONException e) {
             e.printStackTrace();
         }

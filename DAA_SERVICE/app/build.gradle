@@ -36,15 +36,32 @@ dependencies {
     compile files('libs/iaik_jce_full.jar')
     compile files('libs/iaik_jce_native_aes.jar')
 
+    compile 'com.android.support:appcompat-v7:24.2.1'
+
+
+
     compile 'com.squareup.retrofit2:retrofit:2.0.2'
     compile 'com.squareup.retrofit2:converter-gson:2.0.2'
     compile 'org.ow2.util.base64:base64:2.0.0'
     compile 'com.google.zxing:core:3.2.1'
-    compile 'me.dm7.barcodescanner:zxing:1.8.4'
+    //compile 'me.dm7.barcodescanner:zxing:1.8.4'
     compile 'info.hoang8f:fbutton:1.0.5'
+
+    compile 'com.android.support:design:24.2.1'
+    testCompile 'junit:junit:4.12'
+    compile 'org.wordpress:passcodelock:1.+'
     compile 'com.github.florent37:materialtextfield:1.0.5'
     compile 'com.github.dmytrodanylyk.circular-progress-button:library:1.1.3'
     compile 'com.avast:android-styled-dialogs:2.3.3'
     compile 'com.roger.catloadinglibrary:catloadinglibrary:1.0.1'
     compile 'com.victor:lib:1.0.4'
+    compile 'com.mikhaellopez:circularimageview:3.0.2'
+    compile 'com.github.medyo:fancybuttons:1.8.3'
+
+    compile 'com.kaopiz:kprogresshud:1.0.5'
+    compile 'com.avast:android-styled-dialogs:2.3.3'
+    compile 'me.dm7.barcodescanner:zxing:1.9'
+    compile 'me.dm7.barcodescanner:zbar:1.9'
+    compile 'com.avast:android-styled-dialogs:2.3.3'
+    compile 'com.squareup.retrofit2:converter-scalars:2.1.0'
 }

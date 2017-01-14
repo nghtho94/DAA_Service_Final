@@ -24,31 +24,33 @@
     <com.github.florent37.materialtextfield.MaterialTextField
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="70dp"
         app:mtf_cardCollapsedHeight="5dp"
         app:mtf_image="@drawable/password"
-        app:mtf_labelColor="@android:color/white"
-        app:mtf_openKeyboardOnFocus="true">
+        app:mtf_labelColor="@android:color/darker_gray"
+        app:mtf_openKeyboardOnFocus="true"
+
+        >
+
+        <EditText
+            android:id="@+id/login_text_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Pin"
+            android:textColor="#333"
+            android:textColorHint="#666"
+            android:textSize="25dp"
+            android:password="true"
+            android:gravity="center"
+            android:singleLine="true"/>
 
     </com.github.florent37.materialtextfield.MaterialTextField>
 
-
-    <EditText
-        android:id="@+id/login_text_edit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Pin"
-        android:textColor="#333"
-        android:textColorHint="#666"
-        android:textSize="25dp"
-        android:password="true"
-        android:gravity="center"/>
-
     <com.dd.CircularProgressButton
         android:id="@+id/btnlogin"
-        android:layout_width="568dp"
+        android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="15dp"
         android:textColor="@color/cpb_white"
         android:textSize="18sp"
         app:cpb_iconComplete="@drawable/ic_action_accept"
