@@ -212,7 +212,7 @@ public class LoginActivity extends AppCompatActivity {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Config.URL_VERIFIER)
+                .baseUrl(Config.URL_ISSUER)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 

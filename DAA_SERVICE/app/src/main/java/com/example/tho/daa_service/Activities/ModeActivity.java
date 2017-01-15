@@ -10,11 +10,21 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.tho.daa_service.Interfaces.LoginAPI;
+import com.example.tho.daa_service.Models.ResponseData.VerifyResponse;
 import com.example.tho.daa_service.Models.Utils.CheckInternet;
+import com.example.tho.daa_service.Models.Utils.Config;
 import com.example.tho.daa_service.R;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.kaopiz.kprogresshud.KProgressHUD;
 
 import mehdi.sakout.fancybuttons.FancyButton;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ModeActivity extends AppCompatActivity {
 
@@ -89,6 +99,33 @@ public class ModeActivity extends AppCompatActivity {
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
             // Otherwise, setup the chat session
         }
+    }
+
+    public void loginVerifier(){
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Config.URL_VERIFIER)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        LoginAPI service = retrofit.create(LoginAPI.class);
+
+        Call<VerifyResponse> call = service.login(Config.APP_ID, "123456");
+
+        call.enqueue(new Callback<VerifyResponse>() {
+            @Override
+            public void onResponse(Call<VerifyResponse> call, Response<VerifyResponse> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<VerifyResponse> call, Throwable t) {
+
+            }
+        });
     }
 
 

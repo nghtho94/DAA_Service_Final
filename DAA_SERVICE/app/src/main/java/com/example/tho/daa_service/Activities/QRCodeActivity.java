@@ -52,7 +52,7 @@ public class QRCodeActivity extends AppCompatActivity {
 
         String jsonBank = identitySP_Data.getLevel_customer();
         JSONObject json = new JSONObject(jsonBank);
-        return json.getString("user_name");
+        return json.getString("service_name");
     }
 
     @Override
@@ -85,7 +85,7 @@ public class QRCodeActivity extends AppCompatActivity {
 
                 try {
                     synchronized (this) {
-                        wait(5000);
+                        wait(500);
                         // runOnUiThread method used to do UI task in main thread.
                         runOnUiThread(new Runnable() {
                             @Override

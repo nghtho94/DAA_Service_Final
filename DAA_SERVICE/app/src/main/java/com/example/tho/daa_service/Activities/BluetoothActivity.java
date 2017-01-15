@@ -5,49 +5,43 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.tho.daa_service.CheckBoxView.SmoothCheckBox;
 import com.example.tho.daa_service.Controller.BluetoothService;
 import com.example.tho.daa_service.Controller.Constants;
 import com.example.tho.daa_service.Controller.Singleton;
-import com.example.tho.daa_service.Interfaces.IdentitySPDataAPI;
 import com.example.tho.daa_service.Models.DAA.Authenticator;
 import com.example.tho.daa_service.Models.DAA.Issuer;
 import com.example.tho.daa_service.Models.DAA.Verifier;
 import com.example.tho.daa_service.Models.ResponseData.IdentitySPData;
-import com.example.tho.daa_service.Models.Utils.Config;
 import com.example.tho.daa_service.Models.Utils.Utils;
 import com.example.tho.daa_service.Models.crypto.BNCurve;
 import com.example.tho.daa_service.R;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class BluetoothActivity extends AppCompatActivity {
 
@@ -58,10 +52,12 @@ public class BluetoothActivity extends AppCompatActivity {
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
     private static final int REQUEST_ENABLE_BT = 3;
 
-    // Layout Views
-    private ListView mConversationView;
-    private EditText mOutEditText;
-    private Button mSendButton, getData;
+    public final static int WIDTH=500;
+    String QRcodeContent;
+
+    //View
+    SmoothCheckBox cbs1, cbs2, cbs3, cbs4;
+    ImageView qrCodeImageview;
 
     /**
      * Name of the connected device
@@ -89,35 +85,24 @@ public class BluetoothActivity extends AppCompatActivity {
     private BluetoothService mChatService = null;
 
     //SingleTon
-    Singleton singleton = Singleton.getInstance();
+    Singleton singleton = null;
 
     BNCurve curve = null;
     IdentitySPData identitySPData = null;
 
-    //TEST
-    Button test;
-    IdentitySPData identity_sp_data;
 
-    String TPM_ECC_BN_P256 = "TPM_ECC_BN_P256";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth);
 
-
-       //
-        test = (Button) findViewById(R.id.buttonTEST);
-
-        test.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getData();
-            }
-        });
-
-        curve = new BNCurve(BNCurve.BNCurveInstantiation.valueOf(TPM_ECC_BN_P256));
+        singleton = Singleton.getInstance();
+        curve = singleton.getCurve();
         identitySPData = singleton.getIdentitySPData();
+
+
 
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -127,36 +112,115 @@ public class BluetoothActivity extends AppCompatActivity {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             this.finish();
         }
+
+        createQRCode();
     }
 
-    public void getData(){
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
+    public void initView(){
+        cbs1 = (SmoothCheckBox) findViewById(R.id.scb1);
+        cbs2 = (SmoothCheckBox) findViewById(R.id.scb2);
+        cbs3 = (SmoothCheckBox) findViewById(R.id.scb3);
+        cbs4 = (SmoothCheckBox) findViewById(R.id.scb4);
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Config.URL_ISSUER)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
+        qrCodeImageview = (ImageView) findViewById(R.id.img_qr_code_image1);
 
-        IdentitySPDataAPI service = retrofit.create(IdentitySPDataAPI.class);
+        cbs1.setClickable(false);
+        cbs2.setClickable(false);
+        cbs3.setClickable(false);
+        cbs4.setClickable(false);
+    }
 
-        Call<IdentitySPData> call = service.downloadFile(4);
+    public String getName() throws JSONException {
 
-        call.enqueue(new Callback<IdentitySPData>() {
-            @Override
-            public void onResponse(Call<IdentitySPData> call, Response<IdentitySPData> response) {
-                identity_sp_data = response.body();
-                Log.d("ServiceData", identity_sp_data.getPermission());
-                identitySPData = identity_sp_data;
-            }
+        String jsonBank = identitySPData.getLevel_customer();
+        JSONObject json = new JSONObject(jsonBank);
+        return json.getString("service_name");
+    }
 
-            @Override
-            public void onFailure(Call<IdentitySPData> call, Throwable t) {
-                Log.d("Identity Data SP", "onResponse" + t.getMessage());
+    public void createQRCode(){
+
+
+        final JSONObject jsonInputx = new JSONObject();
+        try {
+            jsonInputx.put("mode","offline");
+
+            jsonInputx.put("name", getName());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+
+
+        // create thread to avoid ANR Exception
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                // this is the msg which will be encode in QRcode
+                QRcodeContent = jsonInputx.toString();
+
+
+
+                try {
+                    synchronized (this) {
+                        wait(5000);
+                        // runOnUiThread method used to do UI task in main thread.
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Bitmap bitmap = null;
+
+                                    bitmap = encodeAsBitmap(QRcodeContent);
+                                    qrCodeImageview.setImageBitmap(bitmap);
+
+                                } catch (WriterException e) {
+                                    e.printStackTrace();
+                                } // end of catch block
+
+                            } // end of run method
+                        });
+
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+
+
             }
         });
+        t.start();
+
     }
+
+
+
+    // this is method call from on create and return bitmap image of QRCode.
+    Bitmap encodeAsBitmap(String str) throws WriterException {
+        BitMatrix result;
+        try {
+            result = new MultiFormatWriter().encode(str,
+                    BarcodeFormat.QR_CODE, WIDTH, WIDTH, null);
+        } catch (IllegalArgumentException iae) {
+            // Unsupported format
+            return null;
+        }
+        int w = result.getWidth();
+        int h = result.getHeight();
+        int[] pixels = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            int offset = y * w;
+            for (int x = 0; x < w; x++) {
+                //pixels[offset + x] = result.get(x, y) ? getResources().getColor(R.color.black):getResources().getColor(R.color.white);
+                pixels[offset + x] = result.get(x, y) ? ContextCompat.getColor(this, android.R.color.black):ContextCompat.getColor(this, android.R.color.white);
+            }
+
+        }
+        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        bitmap.setPixels(pixels, 0, 500, 0, 0, w, h);
+        return bitmap;
+    }
+
 
     @Override
     public void onStart() {
@@ -202,27 +266,7 @@ public class BluetoothActivity extends AppCompatActivity {
         Log.d(TAG, "setupChat()");
 
         // Initialize the array adapter for the conversation thread
-//        mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
-//
-//        mConversationView.setAdapter(mConversationArrayAdapter);
 
-        // Initialize the compose field with a listener for the return key
-        //mOutEditText.setOnEditorActionListener(mWriteListener);
-
-        // Initialize the send button with a listener that for click events
-//        mSendButton.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View v) {
-//                // Send a message using content of the edit text widget
-////                View view = getView();
-////                if (null != view) {
-////                    TextView textView = (TextView) view.findViewById(R.id.edit_text_out);
-////                    String message = textView.getText().toString();
-////                    sendMessage(message);
-////                }
-//
-//                sendMessage("xxx");
-//           }
-  //      });
 
         // Initialize the BluetoothService to perform bluetooth connections
         mChatService = new BluetoothService(this, mHandler);
@@ -348,11 +392,11 @@ public class BluetoothActivity extends AppCompatActivity {
                     Log.d("message",readMessage);
                     ///HANDLE Message
                     Toast.makeText(BluetoothActivity.this, readMessage, Toast.LENGTH_LONG).show();
-//                    try {
-//                        messageHandle(readMessage);
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
+                    try {
+                        messageHandle(readMessage);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -470,6 +514,8 @@ public class BluetoothActivity extends AppCompatActivity {
         switch (state) {
             case "sessionID":
                 //Get User sessionID
+                cbs1.setChecked(true);
+                //
                 String sesssionID = json.getString("sessionID");
 
                 //CreateSig
@@ -497,11 +543,14 @@ public class BluetoothActivity extends AppCompatActivity {
 
                 //send message
                 sendMessage(jsonInput.toString());
+                cbs2.setChecked(true);
 
                 //Toast.makeText(BluetoothActivity.this, "sessionID" , Toast.LENGTH_SHORT);
                 break;
 
             case "verification":
+
+                cbs3.setChecked(true);
 
                 //Get Service sessionID
                 String UserSig = json.getString("sig");
@@ -521,6 +570,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
                 if (temp == true) {
 
+                    cbs4.setChecked(true);
                     JSONObject jsonInput1 = new JSONObject();
                     try {
                         jsonInput1.put("state", "SUCCESS");

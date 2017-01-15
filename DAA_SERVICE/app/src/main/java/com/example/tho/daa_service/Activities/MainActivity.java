@@ -1,6 +1,7 @@
 package com.example.tho.daa_service.Activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -62,6 +63,12 @@ public class MainActivity extends AppCompatActivity {
 
         identitySP_Data = singleton.getIdentitySPData();
 
+        try {
+            txtname.setText(getName());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -72,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
         btn_Authentication.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, ModeActivity.class);
+                startActivity(i);
 
 
             }
@@ -87,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
         btn_Profile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, ProfileActivity.class);
+                startActivity(i);
 
             }
         });
@@ -94,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
         btn_Log.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, LogActivity.class);
+                startActivity(i);
 
             }
         });
@@ -101,7 +114,22 @@ public class MainActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                final KProgressHUD progressLogout = KProgressHUD.create(MainActivity.this)
+                        .setStyle(KProgressHUD.Style.SPIN_INDETERMINATE)
+                        .setLabel("Logging out");
 
+                progressLogout.show();
+
+                Handler handler = new Handler();
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(i);
+                        finish();
+                    }
+                }, 300);
             }
         });
     }
@@ -110,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
         String jsonBank = identitySP_Data.getLevel_customer();
         JSONObject json = new JSONObject(jsonBank);
-        return json.getString("user_name");
+        return json.getString("service_name");
     }
 
     private Boolean exit = false;
@@ -171,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Config.URL_VERIFIER)
+                .baseUrl(Config.URL_ISSUER)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 

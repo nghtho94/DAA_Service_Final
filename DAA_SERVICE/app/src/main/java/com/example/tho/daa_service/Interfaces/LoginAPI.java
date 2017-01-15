@@ -12,5 +12,5 @@ public interface LoginAPI {
 
     @POST("/login")
     @FormUrlEncoded
-    Call<VerifyResponse> downloadFile(@Field("app_id") Integer appID, @Field("m") String m);
+    Call<VerifyResponse> login(@Field("app_id") Integer appID, @Field("m") String m);
 }

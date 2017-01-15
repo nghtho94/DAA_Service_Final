@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_bluetooth"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,17 +9,146 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
     tools:context="com.example.tho.daa_service.Activities.BluetoothActivity">
 
-    <Button
-        android:text="GetData"
-        android:layout_width="wrap_content"
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="66dp"
-        android:id="@+id/buttonTEST"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp">
+
+            <com.example.tho.daa_service.CheckBoxView.SmoothCheckBox
+                android:id="@+id/scb1"
+                android:layout_gravity="center_vertical|left"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:paddingTop="10dp"
+                app:color_checked="#149A45"
+                />
+
+            <TextView
+                android:layout_weight="100"
+                android:textSize="15sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="Receive customer sessionID"
+                android:layout_marginLeft="10dp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
 
 
 
-</RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp">
+
+            <com.example.tho.daa_service.CheckBoxView.SmoothCheckBox
+                android:id="@+id/scb2"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:paddingTop="10dp"
+                app:color_checked="#149A45"
+                />
+
+            <TextView
+                android:layout_weight="100"
+                android:textSize="15sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="Send serivce permission"
+                android:layout_marginLeft="10dp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp">
+
+            <com.example.tho.daa_service.CheckBoxView.SmoothCheckBox
+                android:id="@+id/scb3"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:paddingTop="10dp"
+                app:color_checked="#149A45"
+                />
+
+            <TextView
+                android:layout_weight="100"
+                android:textSize="15sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="Verify customer signature"
+                android:layout_marginLeft="10dp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp">
+
+            <com.example.tho.daa_service.CheckBoxView.SmoothCheckBox
+                android:id="@+id/scb4"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:paddingTop="10dp"
+                app:color_checked="#149A45"
+                />
+
+            <TextView
+                android:layout_weight="100"
+                android:textSize="15sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="Complete"
+                android:layout_marginLeft="10dp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/img_qr_code_image1"
+            android:layout_gravity="center_horizontal" />
+
+
+    </LinearLayout>
+
+
+
+
+
+
+</LinearLayout>
