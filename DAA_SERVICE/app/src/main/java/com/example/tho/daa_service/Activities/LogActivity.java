@@ -8,27 +8,32 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.tho.daa_service.CheckBoxView.SmoothCheckBox;
+import com.example.tho.daa_service.Controller.Singleton;
+import com.example.tho.daa_service.Models.ResponseData.Bean;
 import com.example.tho.daa_service.R;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 public class LogActivity extends AppCompatActivity {
     private ArrayList<Bean> mList = new ArrayList<>();
 
+    Singleton singleton = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log);
 
-        mList.add(new Bean("tho","20","hocsinh"));
-        mList.add(new Bean("my","20","hocsinh"));
+        singleton = Singleton.getInstance();
+
+        mList = singleton.getmList();
+
 
 
         ListView lv = (ListView) findViewById(R.id.lv);
+        TextView emptyText = (TextView)findViewById(android.R.id.empty);
+        lv.setEmptyView(emptyText);
         lv.setAdapter(new BaseAdapter() {
             @Override
             public int getCount() {
@@ -51,6 +56,7 @@ public class LogActivity extends AppCompatActivity {
                 if (convertView == null) {
                     holder = new ViewHolder();
                     convertView = View.inflate(LogActivity.this, R.layout.item, null);
+                    holder.time = (TextView) convertView.findViewById(R.id.time);
                     holder.tv = (TextView) convertView.findViewById(R.id.tv);
                     holder.cb = (SmoothCheckBox) convertView.findViewById(R.id.scb);
                     holder.cb.setClickable(false);
@@ -68,8 +74,10 @@ public class LogActivity extends AppCompatActivity {
                 });
 
                 holder.cb.setChecked(true);
-                String text = "Item" + position;
+                String text = bean.getName();
                 holder.tv.setText(text);
+                String time = bean.getTime();
+                holder.time.setText(time);
 
 
                 return convertView;
@@ -78,6 +86,7 @@ public class LogActivity extends AppCompatActivity {
             class ViewHolder {
                 SmoothCheckBox cb;
                 TextView tv;
+                TextView time;
             }
         });
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -87,33 +96,9 @@ public class LogActivity extends AppCompatActivity {
                 bean.isChecked = !bean.isChecked;
                 SmoothCheckBox checkBox = (SmoothCheckBox) view.findViewById(R.id.scb);
 //                checkBox.setChecked(bean.isChecked, true);
-                Toast.makeText(LogActivity.this, bean.getTen(),Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(LogActivity.this, bean.getTen(),Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    class Bean implements Serializable {
-        boolean isChecked;
-        String ten;
-        String tuoi;
-        String congviec;
-
-        public Bean(String ten, String tuoi, String congviec){
-            this.ten = ten;
-            this.tuoi = tuoi;
-            this.congviec = congviec;
-        }
-
-        public String getCongviec() {
-            return congviec;
-        }
-
-        public String getTen() {
-            return ten;
-        }
-
-        public String getTuoi() {
-            return tuoi;
-        }
-    }
 }

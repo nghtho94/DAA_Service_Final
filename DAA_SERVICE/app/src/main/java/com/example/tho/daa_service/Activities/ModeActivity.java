@@ -98,6 +98,10 @@ public class ModeActivity extends AppCompatActivity {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
             // Otherwise, setup the chat session
+        }else{
+            Intent i = new Intent(ModeActivity.this, BluetoothActivity.class);
+            startActivity(i);
+            finish();
         }
     }
 

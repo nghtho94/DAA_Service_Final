@@ -46,7 +46,8 @@
         <activity android:name=".Activities.DeviceListActivity" />
         <activity android:name=".Activities.ModeActivity" />
         <activity android:name=".Activities.LogActivity" />
-        <activity android:name=".Activities.ProfileActivity"></activity>
+        <activity android:name=".Activities.ProfileActivity" />
+        <activity android:name=".Activities.LogDetail"></activity>
     </application>
 
 </manifest>

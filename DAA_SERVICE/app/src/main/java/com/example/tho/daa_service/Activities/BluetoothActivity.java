@@ -4,7 +4,9 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,12 +17,19 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.avast.android.dialogs.fragment.SimpleDialogFragment;
+import com.avast.android.dialogs.iface.IDateDialogListener;
+import com.avast.android.dialogs.iface.IListDialogListener;
+import com.avast.android.dialogs.iface.IMultiChoiceListDialogListener;
+import com.avast.android.dialogs.iface.ISimpleDialogCancelListener;
+import com.avast.android.dialogs.iface.ISimpleDialogListener;
 import com.example.tho.daa_service.CheckBoxView.SmoothCheckBox;
 import com.example.tho.daa_service.Controller.BluetoothService;
 import com.example.tho.daa_service.Controller.Constants;
@@ -28,22 +37,33 @@ import com.example.tho.daa_service.Controller.Singleton;
 import com.example.tho.daa_service.Models.DAA.Authenticator;
 import com.example.tho.daa_service.Models.DAA.Issuer;
 import com.example.tho.daa_service.Models.DAA.Verifier;
+import com.example.tho.daa_service.Models.ResponseData.Bean;
 import com.example.tho.daa_service.Models.ResponseData.IdentitySPData;
 import com.example.tho.daa_service.Models.Utils.Utils;
 import com.example.tho.daa_service.Models.crypto.BNCurve;
 import com.example.tho.daa_service.R;
+import com.google.gson.Gson;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
+import com.kaopiz.kprogresshud.KProgressHUD;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 
-public class BluetoothActivity extends AppCompatActivity {
+import static com.example.tho.daa_service.R.id.scb3;
+
+public class BluetoothActivity extends AppCompatActivity implements
+        ISimpleDialogListener,
+        IDateDialogListener,
+        ISimpleDialogCancelListener,
+        IListDialogListener,
+        IMultiChoiceListDialogListener {
 
     private static final String TAG = "BluetoothActivity";
 
@@ -54,11 +74,16 @@ public class BluetoothActivity extends AppCompatActivity {
 
     public final static int WIDTH=500;
     String QRcodeContent;
+    public String userInfoxx;
 
     //View
     SmoothCheckBox cbs1, cbs2, cbs3, cbs4;
     ImageView qrCodeImageview;
+    TextView txt1, txt2, txt3, txt4;
 
+    KProgressHUD hud;
+
+    SharedPreferences mPrefs = null;
     /**
      * Name of the connected device
      */
@@ -101,8 +126,11 @@ public class BluetoothActivity extends AppCompatActivity {
         singleton = Singleton.getInstance();
         curve = singleton.getCurve();
         identitySPData = singleton.getIdentitySPData();
+        mPrefs = this.getSharedPreferences("PREF_NAME", Context.MODE_PRIVATE);
 
-
+        hud = KProgressHUD.create(BluetoothActivity.this)
+                .setStyle(KProgressHUD.Style.SPIN_INDETERMINATE)
+                .setLabel("Authenticating");
 
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -113,16 +141,33 @@ public class BluetoothActivity extends AppCompatActivity {
             this.finish();
         }
 
-        createQRCode();
+        initView();
+
+
     }
 
     public void initView(){
         cbs1 = (SmoothCheckBox) findViewById(R.id.scb1);
         cbs2 = (SmoothCheckBox) findViewById(R.id.scb2);
-        cbs3 = (SmoothCheckBox) findViewById(R.id.scb3);
+        cbs3 = (SmoothCheckBox) findViewById(scb3);
         cbs4 = (SmoothCheckBox) findViewById(R.id.scb4);
 
+        txt1 = (TextView) findViewById(R.id.txt_blue_1);
+        txt2 = (TextView) findViewById(R.id.txt_blue_2);
+        txt3 = (TextView) findViewById(R.id.txt_blue_3);
+        txt4 = (TextView) findViewById(R.id.txt_blue_4);
+
         qrCodeImageview = (ImageView) findViewById(R.id.img_qr_code_image1);
+
+        cbs1.setVisibility(View.INVISIBLE);
+        cbs2.setVisibility(View.INVISIBLE);
+        cbs3.setVisibility(View.INVISIBLE);
+        cbs4.setVisibility(View.INVISIBLE);
+
+        txt1.setVisibility(View.INVISIBLE);
+        txt2.setVisibility(View.INVISIBLE);
+        txt3.setVisibility(View.INVISIBLE);
+        txt4.setVisibility(View.INVISIBLE);
 
         cbs1.setClickable(false);
         cbs2.setClickable(false);
@@ -137,61 +182,7 @@ public class BluetoothActivity extends AppCompatActivity {
         return json.getString("service_name");
     }
 
-    public void createQRCode(){
 
-
-        final JSONObject jsonInputx = new JSONObject();
-        try {
-            jsonInputx.put("mode","offline");
-
-            jsonInputx.put("name", getName());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
-
-
-        // create thread to avoid ANR Exception
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                // this is the msg which will be encode in QRcode
-                QRcodeContent = jsonInputx.toString();
-
-
-
-                try {
-                    synchronized (this) {
-                        wait(5000);
-                        // runOnUiThread method used to do UI task in main thread.
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    Bitmap bitmap = null;
-
-                                    bitmap = encodeAsBitmap(QRcodeContent);
-                                    qrCodeImageview.setImageBitmap(bitmap);
-
-                                } catch (WriterException e) {
-                                    e.printStackTrace();
-                                } // end of catch block
-
-                            } // end of run method
-                        });
-
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-
-
-            }
-        });
-        t.start();
-
-    }
 
 
 
@@ -383,7 +374,7 @@ public class BluetoothActivity extends AppCompatActivity {
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
                     //mConversationArrayAdapter.add("Me:  " + writeMessage);
-                    Toast.makeText(BluetoothActivity.this, writeMessage, Toast.LENGTH_LONG).show();
+
                     break;
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
@@ -391,7 +382,7 @@ public class BluetoothActivity extends AppCompatActivity {
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     Log.d("message",readMessage);
                     ///HANDLE Message
-                    Toast.makeText(BluetoothActivity.this, readMessage, Toast.LENGTH_LONG).show();
+
                     try {
                         messageHandle(readMessage);
                     } catch (JSONException e) {
@@ -421,8 +412,8 @@ public class BluetoothActivity extends AppCompatActivity {
                     break;
                 case Constants.MESSAGE_TOAST:
                     if (null != BluetoothActivity.this) {
-                        Toast.makeText(BluetoothActivity.this, msg.getData().getString(Constants.TOAST),
-                                Toast.LENGTH_SHORT).show();
+                      //  Toast.makeText(BluetoothActivity.this, msg.getData().getString(Constants.TOAST),
+                         //       Toast.LENGTH_SHORT).show();
                     }
                     break;
             }
@@ -513,6 +504,16 @@ public class BluetoothActivity extends AppCompatActivity {
 
         switch (state) {
             case "sessionID":
+                hud.show();
+                cbs1.setVisibility(View.VISIBLE);
+                cbs2.setVisibility(View.VISIBLE);
+                cbs3.setVisibility(View.VISIBLE);
+                cbs4.setVisibility(View.VISIBLE);
+                txt1.setVisibility(View.VISIBLE);
+                txt2.setVisibility(View.VISIBLE);
+                txt3.setVisibility(View.VISIBLE);
+                txt4.setVisibility(View.VISIBLE);
+
                 //Get User sessionID
                 cbs1.setChecked(true);
                 //
@@ -545,17 +546,19 @@ public class BluetoothActivity extends AppCompatActivity {
                 sendMessage(jsonInput.toString());
                 cbs2.setChecked(true);
 
-                //Toast.makeText(BluetoothActivity.this, "sessionID" , Toast.LENGTH_SHORT);
+
+
                 break;
 
             case "verification":
 
-                cbs3.setChecked(true);
+
 
                 //Get Service sessionID
                 String UserSig = json.getString("sig");
 
                 String info = json.getString("info");
+                userInfoxx = info;
 
                 Issuer.IssuerPublicKey ipk = new Issuer.IssuerPublicKey(curve, identitySPData.getIpk());
 
@@ -569,8 +572,9 @@ public class BluetoothActivity extends AppCompatActivity {
                 }
 
                 if (temp == true) {
+                    cbs3.setChecked(true);
 
-                    cbs4.setChecked(true);
+                    susscessFunc();
                     JSONObject jsonInput1 = new JSONObject();
                     try {
                         jsonInput1.put("state", "SUCCESS");
@@ -582,29 +586,72 @@ public class BluetoothActivity extends AppCompatActivity {
                     //send message
                     sendMessage(jsonInput1.toString());
 
+
+
                 } else {
                     //If verify fail set sessionID = null
+                    Log.d("gg","cc");
                     singleton.setSessionID(null);
-                    JSONObject jsonInput1 = new JSONObject();
+                    JSONObject jsonInput2 = new JSONObject();
                     try {
-                        jsonInput1.put("state", "CANCEL");
+                        jsonInput2.put("state", "CANCEL");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
                     //send message
-                    sendMessage(jsonInput1.toString());
+                    sendMessage(jsonInput2.toString());
                 }
-                Toast.makeText(BluetoothActivity.this, "sessionID" , Toast.LENGTH_SHORT);
+
                 break;
             case "CANCEL":
+                hud.dismiss();
                 singleton.setSessionID(null);
-                Toast.makeText(this, "Xác thực thất bại",
-                        Toast.LENGTH_SHORT).show();
+
+                SimpleDialogFragment.createBuilder(this, getSupportFragmentManager())
+                    .setTitle("Notice")
+                    .setMessage("Authentication Fail")
+                    .setPositiveButtonText("OK")
+                    .setCancelableOnTouchOutside(false)
+                    .setRequestCode(4848)
+                    .show();
+
+            case "SUCCESS":
+
             break;
 
         }
 
+    }
+
+    public void susscessFunc() throws JSONException {
+        JSONObject jsonObjectx = new JSONObject(userInfoxx);
+        String namex = jsonObjectx.getString("user_name");
+        String jobx = jsonObjectx.getString("user_job");
+        hud.dismiss();
+        singleton.setSessionID(null);
+
+        SimpleDialogFragment.createBuilder(this, getSupportFragmentManager())
+                .setTitle("Notice")
+                .setMessage("Authentication Success \n" +
+                        "User Information:\n" +
+                        "- Name: "+namex+ "\n"+
+                        "- Job: "+jobx+ "\n")
+                .setPositiveButtonText("OK")
+                .setCancelableOnTouchOutside(false)
+                .setRequestCode(4849)
+                .show();
+
+        Date date = new Date();
+        Bean bean = new Bean(namex, date.toString(),jobx ,true);
+        singleton.addLog(bean);
+
+        Gson gson1 = new Gson();
+        String jsonzx = gson1.toJson(singleton.getmList());
+        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+        prefsEditor.putString("LogList",jsonzx).commit();
+
+        cbs4.setChecked(true);
     }
 
 
@@ -644,6 +691,81 @@ public class BluetoothActivity extends AppCompatActivity {
                 Utils.hexStringToByteArray(sig), message.getBytes(), curve);
         //compare krd to session
         return ver.verifyWrt(info, session, signature, basename, pk, null);
+    }
+
+
+    //Dialog
+    private static final int REQUEST_SIMPLE_DIALOG = 42;
+    @Override
+    public void onPositiveButtonClicked(int requestCode, Date date) {
+        //Toast.makeText(this,"cc",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onNegativeButtonClicked(int requestCode, Date date) {
+        // Toast.makeText(this,"cc",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onListItemSelected(CharSequence value, int number, int requestCode) {
+
+    }
+
+    @Override
+    public void onListItemsSelected(CharSequence[] values, int[] selectedPositions, int requestCode) {
+
+    }
+
+    @Override
+    public void onCancelled(int requestCode) {
+
+    }
+
+    @Override
+    public void onNegativeButtonClicked(int requestCode) {
+        if (requestCode == REQUEST_SIMPLE_DIALOG) {
+            Toast.makeText(this, "Negative button clicked", Toast.LENGTH_SHORT).show();
+        }
+
+
+
+        if ( requestCode == 4848) {
+            SimpleDialogFragment.createBuilder(this, getSupportFragmentManager())
+                    .setTitle("Notice")
+                    .setMessage("Authentication Fail")
+                    .setPositiveButtonText("Accept")
+                    .setCancelableOnTouchOutside(false)
+                    .setRequestCode(9999)
+                    .show();
+        }
+    }
+
+    @Override
+    public void onNeutralButtonClicked(int requestCode) {
+
+    }
+
+    @Override
+    public void onPositiveButtonClicked(int requestCode) {
+
+        if (requestCode == REQUEST_SIMPLE_DIALOG) {
+            Toast.makeText(this, "Positive button clicked", Toast.LENGTH_SHORT).show();
+        }
+
+        if ( requestCode == 4848) {
+            finish();
+        }
+
+        if ( requestCode == 4849){
+            finish();
+        }
+
+        if (requestCode == 9929) {
+            finish();
+        }
+
+
+
     }
 
 }

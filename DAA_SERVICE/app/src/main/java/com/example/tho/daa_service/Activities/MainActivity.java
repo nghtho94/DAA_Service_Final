@@ -14,15 +14,21 @@ import android.widget.Toast;
 
 import com.example.tho.daa_service.Controller.Singleton;
 import com.example.tho.daa_service.Interfaces.IdentitySPDataAPI;
+import com.example.tho.daa_service.Models.ResponseData.Bean;
 import com.example.tho.daa_service.Models.ResponseData.IdentitySPData;
 import com.example.tho.daa_service.Models.Utils.Config;
 import com.example.tho.daa_service.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.kaopiz.kprogresshud.KProgressHUD;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 import info.hoang8f.widget.FButton;
 import mehdi.sakout.fancybuttons.FancyButton;
@@ -69,7 +75,20 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        prepareLogData();
 
+    }
+
+    public void prepareLogData(){
+        String listLog = mPrefs.getString("LogList", "");
+
+        if (listLog.equals("")) {
+           // singleton.setmList(null);
+        }else{
+            Type listType = new TypeToken<List<Bean>>(){}.getType();
+            ArrayList<Bean> list = new Gson().fromJson(listLog,listType);
+            singleton.setmList(list);
+        }
     }
 
     @Override

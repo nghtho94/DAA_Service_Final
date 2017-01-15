@@ -1,8 +1,11 @@
 package com.example.tho.daa_service.Controller;
 
 
+import com.example.tho.daa_service.Models.ResponseData.Bean;
 import com.example.tho.daa_service.Models.ResponseData.IdentitySPData;
 import com.example.tho.daa_service.Models.crypto.BNCurve;
+
+import java.util.ArrayList;
 
 public class Singleton {
 
@@ -11,6 +14,7 @@ public class Singleton {
     private static IdentitySPData identitySPData;
     private static BNCurve curve;
     private static String sessionID;
+    private static ArrayList<Bean> mList = new ArrayList<>();
 
     /* A private Constructor prevents any other
      * class from instantiating.
@@ -50,7 +54,17 @@ public class Singleton {
         Singleton.identitySPData = identitySPData;
     }
 
+    public static void setmList(ArrayList<Bean> mList) {
+        Singleton.mList = mList;
+    }
 
+    public static ArrayList<Bean> getmList() {
+        return mList;
+    }
+
+    public void addLog(Bean bean){
+        this.mList.add(bean);
+    }
 
     /* Other methods protected by singleton-ness */
     protected static void demoMethod( ) {
