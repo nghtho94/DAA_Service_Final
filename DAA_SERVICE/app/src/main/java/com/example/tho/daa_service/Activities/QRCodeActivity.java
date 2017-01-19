@@ -11,11 +11,13 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.example.tho.daa_service.Controller.Singleton;
+import com.example.tho.daa_service.Interfaces.HistoryAPI;
 import com.example.tho.daa_service.Models.ResponseData.Bean;
 import com.example.tho.daa_service.Models.ResponseData.IdentitySPData;
 import com.example.tho.daa_service.Models.Utils.Config;
 import com.example.tho.daa_service.R;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
@@ -27,6 +29,11 @@ import org.json.JSONObject;
 import java.util.Date;
 
 import mehdi.sakout.fancybuttons.FancyButton;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.R.attr.width;
 import static android.graphics.Color.BLACK;
@@ -73,14 +80,44 @@ public class QRCodeActivity extends AppCompatActivity {
         btnExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Date date = new Date();
-                Bean bean = new Bean("Tho", date.toString(),"Student",true);
-                singleton.addLog(bean);
 
-                Gson gson1 = new Gson();
-                String jsonzx = gson1.toJson(singleton.getmList());
-                SharedPreferences.Editor prefsEditor = mPrefs.edit();
-                prefsEditor.putString("LogList",jsonzx).commit();
+                Gson gson = new GsonBuilder()
+                        .setLenient()
+                        .create();
+
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl(Config.URL_ISSUER)
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+
+                HistoryAPI service = retrofit.create(HistoryAPI.class);
+
+                Call<Bean> call = service.getHistory(Config.APP_ID.toString());
+
+                call.enqueue(new Callback<Bean>() {
+                    @Override
+                    public void onResponse(Call<Bean> call, Response<Bean> response) {
+                        Bean history = response.body();
+                        Date date = new Date();
+                        Bean bean = new Bean(history.getName(), date.toString(),history.getJob(),true);
+                        singleton.addLog(bean);
+
+                        Gson gson1 = new Gson();
+                        String jsonzx = gson1.toJson(singleton.getmList());
+                        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                        prefsEditor.putString("LogList",jsonzx).commit();
+
+                        finish();
+                    }
+
+                    @Override
+                    public void onFailure(Call<Bean> call, Throwable t) {
+
+                    }
+                });
+
+
+
             }
         });
     }

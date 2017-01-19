@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void downloadIdentityData(){
+
         final KProgressHUD progressHUD = KProgressHUD.create(MainActivity.this)
                 .setStyle(KProgressHUD.Style.SPIN_INDETERMINATE)
                 .setLabel("Renew Ano-Id")
@@ -240,6 +241,8 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences.Editor prefsEditor = mPrefs.edit();
                 prefsEditor.putString("AnoID",json).commit();
 
+                progressHUD.dismiss();
+
 
 
             }
@@ -247,6 +250,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<IdentitySPData> call, Throwable t) {
                 Log.d(TAG, "onResponse" + t.getMessage());
+
+                progressHUD.dismiss();
             }
         });
 
